@@ -1,0 +1,5 @@
+-cp src
+-lib heaps
+-js dist/html5/main.js
+-main Main
+-debug

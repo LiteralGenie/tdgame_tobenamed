@@ -1,0 +1,16 @@
+{
+	"version": "2.0.0",
+    "configurations": [
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "chrome",
+            "url": "file://${workspaceFolder}/dist/html5/index.html",
+            "webRoot": "${workspaceFolder}",
+            "preLaunchTask": {
+                "type": "haxe",
+                "args": "active configuration"
+            }
+        }
+    ]
+}

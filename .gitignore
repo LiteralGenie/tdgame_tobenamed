@@ -1,0 +1,3 @@
+.vscode/settings.json
+dist/**/*.js
+dist/**/*.js.map
