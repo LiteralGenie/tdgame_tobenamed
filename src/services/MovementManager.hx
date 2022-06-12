@@ -2,6 +2,11 @@ package services;
 
 import utils.Misc;
 
+/**
+    Notes:
+        - Mixing methods that handle user input and more pure methods is kinda gross to read.
+          Is there a way to split these out?
+**/
 
 /**
  * Handles...
@@ -9,19 +14,19 @@ import utils.Misc;
  *  - Pathfinding for in-transit units
  */
 class MovementManager {
+    static var MIN_DRAG_DISTANCE = 10;
+
+    var dragContext: Null<DragContext>;
     var ixnMoveSelected: h2d.Interactive;
+    var selectable: Array<SelectableEntity> = [];
 
     public function new() {
-        var s2d = Game.instance.s2d;
-        
-        this.ixnMoveSelected = new h2d.Interactive(s2d.width, s2d.height, s2d);
-        ixnMoveSelected.onPush = this.onMapClickDown;
-        ixnMoveSelected.onRelease = this.onMapClickUp;
+        this.registerMapClickListeners();
     }
 
-    var selectable: Array<SelectableEntity> = [];
-    var dragContext: Null<DragContext>;
-    static var MIN_DRAG_DISTANCE = 10;
+    public function move(ent: MoveableEntity, pos: Point2D) {
+        
+    }
 
     /**
      * Allow the user to move an entity
@@ -40,18 +45,37 @@ class MovementManager {
     }
 
     /**
-     * Move selected units
-     * @param ev 
+     * Determine whether a click was intended for selecting multiple units (drag) or issuing a movement order (single click)
      */
-    function moveSelected(ev: hxd.Event): Void {
-        for(ent in this.selectable) {
-            if(!ent.selected) continue;
+    function registerMapClickListeners() {
+        var s2d = Game.instance.s2d;
+        this.ixnMoveSelected = new h2d.Interactive(s2d.width, s2d.height, s2d);
+        
+        // Track position of mousedowns
+        ixnMoveSelected.onPush = function(ev) {
+            this.dragContext = {
+                start: new Point2D(ev.relX, ev.relY)
+            };
+        };
 
-            ent.pos.x = ev.relX;
-            ent.pos.y = ev.relY;
+        // Check if mouseup triggered a drag or single-click
+        ixnMoveSelected.onRelease = function(ev) {
+            // Calculate drag distance
+            var dragDistance = 0.0;
+            var clickLoc = new Point2D(ev.relX, ev.relY);
+            if(this.dragContext != null) {
+                var dist = clickLoc.sub(this.dragContext.start);
+                dragDistance = Math.sqrt(Math.pow(dist.x, 2) + Math.pow(dist.y, 2));
+            }
+
+            // Check if distance qualifies as an intentional drag
+            if(dragDistance > MIN_DRAG_DISTANCE) {
+                this.selectUnits(this.dragContext.start, clickLoc);
+            } else {
+                this.moveSelected(ev);
+            }
         }
     }
-
     /**
      * Mark units inside the input region as selected
      * @param start 
@@ -64,29 +88,12 @@ class MovementManager {
             ent.selected = ent.pos.isBounded(a,b);
         }
     }
+    function moveSelected(ev: hxd.Event): Void {
+        for(ent in this.selectable) {
+            if(!ent.selected) continue;
 
-    function onMapClickDown(ev: hxd.Event): Void {
-        this.dragContext = {
-            start: new Point2D(ev.relX, ev.relY)
-        };
-    }
-
-    /**
-     * Determine whether a click was intended for selecting multiple units (end of a drag) or issuing a movement order (single click)
-     * @param ev 
-     */
-    function onMapClickUp(ev: hxd.Event): Void {
-        // Check if distance constitutes a drag
-        var dragDistance = 0.0;
-        var clickLoc = new Point2D(ev.relX, ev.relY);
-        if(this.dragContext != null) {
-            var dist = clickLoc.sub(this.dragContext.start);
-            dragDistance = Math.sqrt(Math.pow(dist.x, 2) + Math.pow(dist.y, 2));
-        }
-        if(dragDistance > MIN_DRAG_DISTANCE) {
-            this.selectUnits(this.dragContext.start, clickLoc);
-        } else {
-            this.moveSelected(ev);
+            ent.pos.x = ev.relX;
+            ent.pos.y = ev.relY;
         }
     }
 }
