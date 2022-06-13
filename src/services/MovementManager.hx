@@ -14,17 +14,28 @@ import utils.Misc;
  *  - Pathfinding for in-transit units
  */
 class MovementManager {
+    // Minimum distance before a click becomes a drag
     static var MIN_DRAG_DISTANCE = 10;
 
+    // Tracks mousedown location to distinguish mouseup events (single-click vs drag)
     var dragContext: Null<DragContext>;
+
+    // Reference to mousedown / mouse up listeners
     var ixnMoveSelected: h2d.Interactive;
+
+    // Units the player can select and move
     var selectable: Array<SelectableEntity> = [];
 
     public function new() {
         this.registerMapClickListeners();
     }
 
-    public function move(ent: MoveableEntity, pos: Point2D) {
+    /**
+     * Calculate path for an entity to reach a destination
+     * @param ent
+     * @param dest
+     */
+     function moveEntityTo(ent: MoveableEntity, dest: Point2D) {
         
     }
 
@@ -37,8 +48,8 @@ class MovementManager {
 
         var ixnSelect = new h2d.Interactive(ent.size.x, ent.size.y, ent.sprite);
         ixnSelect.onClick = function(ev) {
-            for(ent in this.selectable) ent.selected = false;
-            ent.selected = true;
+            for(ent in this.selectable) ent.isSelected = false;
+            ent.isSelected = true;
         }
 
         // @todo return deregister function
@@ -85,12 +96,12 @@ class MovementManager {
         // Select units that lie in input region
         // @todo sort selected for efficiency
         for(ent in this.selectable) {
-            ent.selected = ent.pos.isBounded(a,b);
+            ent.isSelected = ent.pos.isBounded(a,b);
         }
     }
     function moveSelected(ev: hxd.Event): Void {
         for(ent in this.selectable) {
-            if(!ent.selected) continue;
+            if(!ent.isSelected) continue;
 
             ent.pos.x = ev.relX;
             ent.pos.y = ev.relY;
@@ -111,5 +122,5 @@ typedef MoveableEntity = {
 
 typedef SelectableEntity = {
     > MoveableEntity,
-    selected: Bool
+    isSelected: Bool
 }

@@ -5,11 +5,11 @@ import debug.Debug.randomPos;
 import utils.Misc;
 
 class Knight {
-    public var sprite: h2d.Bitmap;
+    public var isSelected: Bool = false;
     public var pos: Point2D;
-    public var selected: Bool = false;
     public var size: Point2D;
     public var speed: Float;
+    public var sprite: h2d.Bitmap;
 
     public function new() {
         this.pos = randomPos();
